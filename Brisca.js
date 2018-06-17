@@ -6,14 +6,15 @@ class Card {
         this.name = name;
     }
 }
+
+// Ordered according to their score
 const names = ["Ace", "Three", "King", "Knight", "Ten", "Seven", "Six", "Five", "Four", "Two"];
 const suits = ["Clubs", "Spades", "Hearts", "Diamonds"];
 
+// Shuffles a deck
 function shuffle(deck) {
     var currentIndex = deck.length, temporaryValue, randomIndex;
-  
-    // While there remain elements to shuffle...
-    while (0 !== currentIndex) {
+        while (0 !== currentIndex) {
     
         // Pick a remaining element...
         randomIndex = Math.floor(Math.random() * currentIndex);
@@ -24,13 +25,12 @@ function shuffle(deck) {
         deck[currentIndex] = deck[randomIndex];
         deck[randomIndex] = temporaryValue;
     }
-  
     return deck;
 }
 
+// Creates a deck and returns a shuffled deck
 function newShuffledDeck() {
     var deck = [];
-
     for (var card = 0; card < names.length; card++) {
         for (var suit = 0; suit < suits.length; suit++) {
             deck.push(new Card(suits[suit], names[card]));
@@ -39,6 +39,7 @@ function newShuffledDeck() {
     return shuffle(deck);
 }
 
+// Returns the score of all the cards in the array
 function score(cards) {
     result = 0;
     for (var card = 0; card < cards.length; card++) {
@@ -63,25 +64,30 @@ function score(cards) {
     return result;
 }
 
-function compare(card1, card2, mainSuit, player) {
-    if (player == "User") {
-        var other = "Computer";
+// Compares two cards and returns the winner, where "first" is the player that went first and played "card1"
+function compare(card1, card2, mainSuit, first) {
+
+    // Checks who played first
+    if (first == "User") {
+        var second = "Computer";
     } else {
-        var other = "User";
+        var second = "User";
     }
+
+    // Evaluates who won the round
     if (card1.suit == mainSuit && card2.suit != mainSuit) {
-        return player;
+        return first;
     } else if (card1.suit != mainSuit && card2.suit == mainSuit) {
-        return other;
+        return second;
     } else if (card1.suit != card2.suit) {
-        return player;
+        return first;
     } else {
         var score1 = score(card1);
         var score2 = score(card2);
         if (score1 > score2) {
-            return player;
+            return first;
         } else {
-            return other;
+            return second;
         }
     }
 }
@@ -93,6 +99,7 @@ function comp(card, compHand, mainSuit) {
     return compCard;
 }
 
+// Draws n cards from deck
 function draw(n, deck) {
     var hand = [];
     for (var card = 0; card < n; card++) {
@@ -102,14 +109,21 @@ function draw(n, deck) {
 }
 
 function userTurn(userHand) {
-    if (userHand.length == 3) {
-        var text = "Choose one card to play. You have the following cards: \n" + "1. " + userHand[0].name + " of " + userHand[0].suit + "\n2. " + userHand[1].name + " of " + userHand[1].suit + "\n3. " + userHand[2].name + " of " + userHand[2].suit + "\n";
-    } else if (userHand.length == 2) {
-        var text = "Choose one card to play. You have the following cards: \n" + "1. " + userHand[0].name + " of " + userHand[0].suit + "\n2. " + userHand[1].name + " of " + userHand[1].suit + "\n";
-    } else {
-        var text = "Choose one card to play. You have the following cards: \n" + "1. " + userHand[0].name + " of " + userHand[0].suit + "\n";
+    switch(userHand.length) {
+        case 3:
+            var text = "Choose one card to play. You have the following cards: \n" + "1. " + userHand[0].name + " of " + userHand[0].suit + "\n2. " + userHand[1].name + " of " + userHand[1].suit + "\n3. " + userHand[2].name + " of " + userHand[2].suit + "\n";
+            break;
+        case 2:
+            var text = "Choose one card to play. You have the following cards: \n" + "1. " + userHand[0].name + " of " + userHand[0].suit + "\n2. " + userHand[1].name + " of " + userHand[1].suit + "\n";
+            break;
+        case 1:
+            var text = "Choose one card to play. You have the following cards: \n" + "1. " + userHand[0].name + " of " + userHand[0].suit + "\n";
+            break;
     }
+
+    // Asks the User what he wants to play
     var cardChoice = Number(readlineSync.question(text));
+
     if (cardChoice > userHand.length || cardChoice < 1) {
         console.log("Invalid argument, please enter a number between 1 and your handsize");
         return userTurn(userHand);
@@ -120,6 +134,8 @@ function userTurn(userHand) {
 }
 
 function turn(p) {
+
+    // Checks who played first
     if (p.player == "Computer") {
         var compCard = comp(null, p.compHand, p.mainSuit);
         var userCard = userTurn(p.userHand);
@@ -129,12 +145,16 @@ function turn(p) {
         var compCard = comp(userCard, p.compHand, p.mainSuit);
         var winner = compare(userCard, compCard, p.mainSuit, p.player);
     }
+
+    // Calculates the score of the round
     var roundScore = score([userCard, compCard]);
     if (winner == "User") {
         p.userScore += roundScore;
     } else {
         p.compScore += roundScore;
     }
+
+    // Draw step, winner draws first
     if (p.deck.length != 1 && p.deck.length != 0) {
         if (winner == "User") {
             p.userHand.push(draw(1, p.deck)[0]);
@@ -143,7 +163,10 @@ function turn(p) {
             p.compHand.push(draw(1, p.deck)[0]);
             p.userHand.push(draw(1, p.deck)[0]);
         }
-    } else if (p.deck.length == 1) {
+    } 
+    
+    // Last card drawn is the face-up card from the beggining
+    else if (p.deck.length == 1) {
         if (winner == "User") {
             p.userHand.push(draw(1, p.deck)[0]);
             p.compHand.push(p.firstCard);
@@ -152,33 +175,45 @@ function turn(p) {
             p.userHand.push(p.firstCard);
         }
     }
+
     console.log(winner + " wins " + roundScore + " points");
     return winner;
 }
 
 function initGame() {
     var deck = newShuffledDeck();
+
+    // Take the first card and leave it face-up
     var firstCard = deck.shift();
     const mainSuit = firstCard.suit;
+
+    // Initialize hands and score
     var userHand = draw(3, deck);
     var compHand = draw(3, deck);
     var userScore = 0;
     var compScore = 0;
+
+    // Coin toss to choose the first player
     if (Math.random() >= 0.5) {
         var player = "Computer";
     } else {
         var player = "User";
     }
+
     console.log("The first card is: " + firstCard.name + " of " + firstCard.suit + "\n");
     return {firstCard, mainSuit, userHand, compHand, player, deck, userScore, compScore};
 }
 
+// Main
 function newGame() {
     var parameters = initGame();
     parameters.player = turn(parameters);
+
     while (parameters.userHand.length != 0 && parameters.compHand.length != 0) {
         parameters.player = turn(parameters);
     }
+
+    // Game ends
     if (parameters.userScore > parameters.compScore) {
         console.log("Game ended, User won with " + parameters.userScore + " points");
     } else if (parameters.userScore < parameters.compScore) {
