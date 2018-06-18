@@ -1,5 +1,9 @@
 var readlineSync = require('readline-sync');
- 
+
+// Ordered according to their score
+const names = ["Ace", "Three", "King", "Knight", "Ten", "Seven", "Six", "Five", "Four", "Two"];
+const suits = ["Clubs", "Spades", "Hearts", "Diamonds"];
+
 class Card {
     constructor(suit, name) {
         this.suit = suit;
@@ -8,10 +12,6 @@ class Card {
 }
 
 const constants = {user: "User", comp: "Computer"};
-
-// Ordered according to their score
-const names = ["Ace", "Three", "King", "Knight", "Ten", "Seven", "Six", "Five", "Four", "Two"];
-const suits = ["Clubs", "Spades", "Hearts", "Diamonds"];
 
 // Shuffles a deck
 function shuffle(deck) {
@@ -66,7 +66,7 @@ function score(cards) {
     return result;
 }
 
-// Compares two cards and returns the winner, where "first" is the player that went first and played "card1"
+// Compares two cards and returns the winner, where first is the player that went first and played card1
 function compare(card1, card2, mainSuit, first) {
 
     // Checks who played first
@@ -116,14 +116,12 @@ function draw(n, deck) {
 
 function userTurn(userHand) {
     switch(userHand.length) {
+        var text = "Choose one card to play. You have the following cards: \n1. " + showInfo(userHand[0]);
         case 3:
-            var text = "Choose one card to play. You have the following cards: \n" + "1. " + showInfo(userHand[0]) + "2. " + showInfo(userHand[1]) + "3. " + showInfo(userHand[2]);
+            text += "2. " + showInfo(userHand[1]) + "3. " + showInfo(userHand[2]);
             break;
         case 2:
-            var text = "Choose one card to play. You have the following cards: \n" + "1. " + showInfo(userHand[0]) + "2. " + showInfo(userHand[1]);
-            break;
-        case 1:
-            var text = "Choose one card to play. You have the following card: \n" + "1. " + showInfo(userHand[0]);
+            text += "2. " + showInfo(userHand[1]);
             break;
     }
 
