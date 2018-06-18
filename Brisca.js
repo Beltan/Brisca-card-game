@@ -95,13 +95,12 @@ function compare(card1, card2, mainSuit, first) {
 }
 
 function showInfo(card) {
-    return (card.name + " of " + card.suit + "\n");
+    return (card.name + " of " + card.suit + ".\n");
 }
 
 // TODO: Implement better AI
 function comp(card, compHand, mainSuit) {
     var compCard = compHand.shift();
-    console.log("Computer plays: " + showInfo(compCard));
     return compCard;
 }
 
@@ -115,8 +114,8 @@ function draw(n, deck) {
 }
 
 function userTurn(userHand) {
+    var text = "Choose one card to play. You have the following cards: \n1. " + showInfo(userHand[0]);
     switch(userHand.length) {
-        var text = "Choose one card to play. You have the following cards: \n1. " + showInfo(userHand[0]);
         case 3:
             text += "2. " + showInfo(userHand[1]) + "3. " + showInfo(userHand[2]);
             break;
@@ -126,13 +125,17 @@ function userTurn(userHand) {
     }
 
     // Asks the User what he wants to play
-    var cardChoice = Number(readlineSync.question(text));
+    console.log("To exit enter K.")
+    var cardChoice = readlineSync.question(text);
 
-    if (cardChoice > userHand.length || cardChoice < 1) {
-        console.log("Invalid argument, please enter a number between 1 and your handsize");
+    // Validates input
+    if (cardChoice === "K" || cardChoice === "k") {
+        return;
+    } else if (Number.isNaN(cardChoice) || cardChoice !== Math.round(Number(cardChoice)).toString() || cardChoice > userHand.length || cardChoice < 1) {
+        console.log("Invalid input, please enter a number between 1 and your handsize.");
         return userTurn(userHand);
     } else {
-        console.log("You have played: " + showInfo(userHand[cardChoice - 1]);
+        console.log("You have played: " + showInfo(userHand[cardChoice - 1]));
         return userHand.splice(cardChoice - 1, 1)[0];
     }
 }
@@ -142,11 +145,13 @@ function turn(p) {
     // Checks who played first
     if (p.player === constants.comp) {
         var compCard = comp(null, p.compHand, p.mainSuit);
+        console.log("Computer plays: " + showInfo(compCard));
         var userCard = userTurn(p.userHand);
         var winner = compare(compCard, userCard, p.mainSuit, p.player);
     } else {
         var userCard = userTurn(p.userHand);
         var compCard = comp(userCard, p.compHand, p.mainSuit);
+        console.log("Computer plays: " + showInfo(compCard));
         var winner = compare(userCard, compCard, p.mainSuit, p.player);
     }
 
@@ -180,7 +185,7 @@ function turn(p) {
         }
     }
 
-    console.log(winner + " wins " + roundScore + " points");
+    console.log(winner + " wins " + roundScore + " points. The current score is:\nComputer: " + p.compScore + "\nUser: " + p.userScore);
     return winner;
 }
 
@@ -219,12 +224,24 @@ function newGame() {
 
     // Game ends
     if (parameters.userScore > parameters.compScore) {
-        console.log("Game ended, User won with " + parameters.userScore + " points");
+        console.log("Game ended, User won with " + parameters.userScore + " points.");
     } else if (parameters.userScore < parameters.compScore) {
-        console.log("Game ended, Computer won with " + parameters.compScore + " points");
+        console.log("Game ended, Computer won with " + parameters.compScore + " points.");
     } else {
-        console.log("Game ended with a tie");
+        console.log("Game ended with a tie.");
     }
 }
 
-newGame();
+function main() {
+    var userChoice = readlineSync.question("To start a new game enter S. To exit enter K.\n");
+    if (userChoice === "S" || userChoice === "s") {
+        newGame();
+    } else if (userChoice === "K" || userChoice === "k"){
+        return;
+    } else {
+        console.log("Invalid input.\n");
+        return main();
+    }
+}
+
+main();
