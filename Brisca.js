@@ -84,8 +84,8 @@ function compare(card1, card2, mainSuit, first) {
     } else if (card1.suit !== card2.suit) {
         return first;
     } else {
-        var score1 = score(card1);
-        var score2 = score(card2);
+        var score1 = score([card1]);
+        var score2 = score([card2]);
         if (score1 > score2) {
             return first;
         } else {
@@ -98,45 +98,79 @@ function showInfo(card) {
     return (card.name + " of " + card.suit + ".\n");
 }
 
-// TODO: Implement better AI
-function comp(card, compHand, mainSuit) {
-    return compHand.shift();
-}
-
+// This IA beat an opponent that plays cards at random ~89% of the time and draws ~1 of the time
 function improvedIA(card, compHand, mainSuit) {
-    var noSuited = 0;
+
+    // Checks its hand for the lowest value cards
+    var noSuited = Infinity;
     var noSuitedIndex = -1;
-    var suited = 0;
+    var suited = Infinity;
     var suitedIndex = -1;
     for (var option = 0; option < compHand.length; option++) {
-        var myScore = score([compHand[i]]);
-        if (compHand.suit !== mainSuit) {
+        var myScore = score([compHand[option]]);
+        if (compHand[option].suit !== mainSuit) {
             if (noSuited > myScore) {
                 noSuited = myScore;
-                noSuitedIndex = i;
+                noSuitedIndex = option;
             }
         } else {
             if (suited > myScore) {
                 suited = myScore;
-                suitedIndex = i;
+                suitedIndex = option;
             }
         }
     }
     
     // Case where computer plays first
     if (card === null) {
-        if (noSuited < 5) {
+        if (noSuited !== Infinity) {
             return compHand.splice(noSuitedIndex, 1)[0];
-        } else if (suitedIndex !== -1) {
-            return compHand.splice(suitedIndex, 1)[0];
         } else {
-            return compHand.splice(noSuitedIndex, 1)[0];
+            return compHand.splice(suitedIndex, 1)[0];
         }
     }
     
     // Case where computer plays second
     else {
-        
+        var winners = [];
+        var canWin = false;
+
+        // Checks if it can win with any given card
+        for (var option = 0; option < compHand.length; option++) {
+            winners.push(compare(card, compHand[option], mainSuit, constants.user));
+            if (winners[option] === constants.comp) {
+                canWin = true;
+            }
+        }
+        if (!canWin) {
+            if (noSuitedIndex !== -1 && noSuited < 5) {
+                return compHand.splice(noSuitedIndex, 1)[0];
+            } else  if (suitedIndex !== -1) {
+                return compHand.splice(suitedIndex, 1)[0];
+            } else {
+                return compHand.splice(noSuitedIndex, 1)[0];
+            }
+        } else {
+            var userScore = score([card]);
+            var max = -1;
+            var index = 0;
+            for (var option = 0; option < compHand.length; option++) {
+                if (winners[option] === constants.comp) {
+                    if (compHand[option].suit !== mainSuit) {
+                        var total = score([compHand[option]]) + userScore;
+                        if (total > max) {
+                            max = total;
+                            index = option;
+                        }
+                    }
+                }
+            }
+            if (max !== -1) {
+                return compHand.splice(index, 1)[0];
+            } else {
+                return compHand.splice(suitedIndex, 1)[0];
+            }
+        }
     }
 }
 
@@ -180,7 +214,7 @@ function turn(p) {
 
     // Checks who played first
     if (p.player === constants.comp) {
-        var compCard = comp(null, p.compHand, p.mainSuit);
+        var compCard = improvedIA(null, p.compHand, p.mainSuit);
         console.log("Computer plays: " + showInfo(compCard));
         var userCard = userTurn(p.userHand);
         
@@ -196,7 +230,7 @@ function turn(p) {
         if (userCard === 0) {
             return 0;
         }
-        var compCard = comp(userCard, p.compHand, p.mainSuit);
+        var compCard = improvedIA(userCard, p.compHand, p.mainSuit);
         console.log("Computer plays: " + showInfo(compCard));
         var winner = compare(userCard, compCard, p.mainSuit, p.player);
     }
