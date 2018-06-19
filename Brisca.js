@@ -100,8 +100,44 @@ function showInfo(card) {
 
 // TODO: Implement better AI
 function comp(card, compHand, mainSuit) {
-    var compCard = compHand.shift();
-    return compCard;
+    return compHand.shift();
+}
+
+function improvedIA(card, compHand, mainSuit) {
+    var noSuited = 0;
+    var noSuitedIndex = -1;
+    var suited = 0;
+    var suitedIndex = -1;
+    for (var option = 0; option < compHand.length; option++) {
+        var myScore = score([compHand[i]]);
+        if (compHand.suit !== mainSuit) {
+            if (noSuited > myScore) {
+                noSuited = myScore;
+                noSuitedIndex = i;
+            }
+        } else {
+            if (suited > myScore) {
+                suited = myScore;
+                suitedIndex = i;
+            }
+        }
+    }
+    
+    // Case where computer plays first
+    if (card === null) {
+        if (noSuited < 5) {
+            return compHand.splice(noSuitedIndex, 1)[0];
+        } else if (suitedIndex !== -1) {
+            return compHand.splice(suitedIndex, 1)[0];
+        } else {
+            return compHand.splice(noSuitedIndex, 1)[0];
+        }
+    }
+    
+    // Case where computer plays second
+    else {
+        
+    }
 }
 
 // Draws n cards from deck
@@ -130,7 +166,7 @@ function userTurn(userHand) {
 
     // Validates input
     if (cardChoice === "K" || cardChoice === "k") {
-        return;
+        return 0;
     } else if (Number.isNaN(cardChoice) || cardChoice !== Math.round(Number(cardChoice)).toString() || cardChoice > userHand.length || cardChoice < 1) {
         console.log("Invalid input, please enter a number between 1 and your handsize.");
         return userTurn(userHand);
@@ -147,9 +183,19 @@ function turn(p) {
         var compCard = comp(null, p.compHand, p.mainSuit);
         console.log("Computer plays: " + showInfo(compCard));
         var userCard = userTurn(p.userHand);
+        
+        // User exits the game
+        if (userCard === 0) {
+            return 0;
+        }
         var winner = compare(compCard, userCard, p.mainSuit, p.player);
     } else {
         var userCard = userTurn(p.userHand);
+        
+        // User exits the game
+        if (userCard === 0) {
+            return 0;
+        }
         var compCard = comp(userCard, p.compHand, p.mainSuit);
         console.log("Computer plays: " + showInfo(compCard));
         var winner = compare(userCard, compCard, p.mainSuit, p.player);
@@ -216,10 +262,13 @@ function initGame() {
 // Main
 function newGame() {
     var parameters = initGame();
-    parameters.player = turn(parameters);
-
     while (parameters.userHand.length !== 0 && parameters.compHand.length !== 0) {
         parameters.player = turn(parameters);
+        
+        // User exits the game
+        if (parameters.player === 0) {
+            return;
+        }
     }
 
     // Game ends
@@ -242,6 +291,7 @@ function main() {
         console.log("Invalid input.\n");
         return main();
     }
+    main();
 }
 
 main();
