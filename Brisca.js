@@ -11,7 +11,7 @@ class Card {
     }
 }
 
-const constants = {user: "User", comp: "Computer"};
+const constants = {user: "User", comp: "Computer", changeHi: "Seven", changeLo: "Two"};
 
 // Shuffles a deck
 function shuffle(deck) {
@@ -83,13 +83,13 @@ function compare(card1, card2, mainSuit, first) {
         return second;
     } else if (card1.suit !== card2.suit) {
         return first;
-    } else {
-        var score1 = score([card1]);
-        var score2 = score([card2]);
-        if (score1 > score2) {
-            return first;
-        } else {
-            return second;
+    } else { 
+        for (index = 0; index < names.length; index++) {
+            if (card1.name === names[index]) {
+                return first;
+            } else if (card2.name === names[index]) {
+                return second;
+            }
         }
     }
 }
@@ -210,6 +210,29 @@ function userTurn(userHand) {
     }
 }
 
+function userSwap(userHand, card, firstCard) {
+    var choice = readlineSync.question("Do you want to swap the following cards (Y/N): \n" + showInfo(userHand[card]) + showInfo(firstCard));
+    if (choice === "Y" || choice === "y") {
+        var temp = firstCard;
+        firstCard = userHand.splice(card, 1)[0];
+        userHand.push(temp);
+        return;
+    } else if (choice === "N" || choice === "n") {
+        return;
+    } else {
+        console.log("Please enter a valid input.")
+        return userSwap(userHand, card, firstCard);
+    }
+}
+
+function compSwap(compHand, card, firstCard) {
+    var temp = firstCard;
+    firstCard = compHand.splice(card, 1)[0];
+    compHand.push(temp);
+    console.log("Computer swapped cards.")
+    return;
+}
+
 function turn(p) {
 
     // Checks who played first
@@ -241,6 +264,27 @@ function turn(p) {
         p.userScore += roundScore;
     } else {
         p.compScore += roundScore;
+    }
+
+    // Checks for swapping conditions
+    for (var card = 0; card < p.userHand.length; card++) {
+        if (winner === constants.user) {
+            if (p.userHand[card].suit === p.mainSuit) {
+                if (p.userHand[card].name === constants.changeHi && score([p.firstCard]) !== 0) {
+                    userSwap(p.userHand, card, p.firstCard);
+                } else if (p.userHand[card].name === constants.changeLo && score([p.firstCard]) === 0) {
+                    userSwap(p.userHand, card, p.firstCard);
+                }
+            }
+        } else {
+            if (p.compHand[card].suit === p.mainSuit) {
+                if (p.compHand[card].name === constants.changeHi && score([p.firstCard]) !== 0) {
+                    compSwap(p.compHand, card, p.firstCard);
+                } else if (p.compHand[card].name === constants.changeLo && score([p.firstCard]) === 0) {
+                    compSwap(p.compHand, card, p.firstCard);
+                }
+            }
+        }
     }
 
     // Draw step, winner draws first
@@ -308,10 +352,13 @@ function newGame() {
     // Game ends
     if (parameters.userScore > parameters.compScore) {
         console.log("Game ended, User won with " + parameters.userScore + " points.");
+        return 0;
     } else if (parameters.userScore < parameters.compScore) {
         console.log("Game ended, Computer won with " + parameters.compScore + " points.");
+        return 1;
     } else {
         console.log("Game ended with a tie.");
+        return 0.00001;
     }
 }
 
